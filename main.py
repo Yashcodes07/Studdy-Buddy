@@ -16,7 +16,38 @@ runner = Runner(
     app_name=APP_NAME,
     session_service=session_service
 )
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
+    <html>
+        <head>
+            <title>Study Buddy</title>
+        </head>
+        <body>
+            <h1>📘 Study Buddy AI</h1>
+            <input type="text" id="query" placeholder="Enter your question"/>
+            <button onclick="sendQuery()">Ask</button>
+            <pre id="response"></pre>
 
+            <script>
+                async function sendQuery() {
+                    const query = document.getElementById("query").value;
+
+                    const res = await fetch('/run', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ message: query })
+                    });
+
+                    const data = await res.json();
+                    document.getElementById("response").innerText = data.response;
+                }
+            </script>
+        </body>
+    </html>
+    """
 @app.post("/run")
 async def run_agent(request: Request):
     body = await request.json()
