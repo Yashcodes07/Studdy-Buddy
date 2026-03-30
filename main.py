@@ -1,7 +1,8 @@
 import os
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
@@ -10,12 +11,16 @@ from agent import root_agent
 app = FastAPI()
 
 APP_NAME = "study_guide"
+
 session_service = InMemorySessionService()
+
 runner = Runner(
     agent=root_agent,
     app_name=APP_NAME,
     session_service=session_service
 )
+
+# ✅ Root UI (for browser)
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
@@ -48,6 +53,8 @@ def home():
         </body>
     </html>
     """
+
+# ✅ POST endpoint (main agent)
 @app.post("/run")
 async def run_agent(request: Request):
     body = await request.json()
@@ -65,6 +72,7 @@ async def run_agent(request: Request):
     )
 
     response_text = ""
+
     async for event in runner.run_async(
         user_id="user",
         session_id="session_001",
@@ -76,10 +84,13 @@ async def run_agent(request: Request):
 
     return JSONResponse({"response": response_text})
 
+# ✅ Health check
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+
+# ❗ Not required for Cloud Run but fine to keep
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
