@@ -1,0 +1,8 @@
+.venv/
+.adk/
+study_guide/.adk/
+__pycache__/
+study_guide/__pycache__/
+*.pyc
+.env
+study_guide/.env
